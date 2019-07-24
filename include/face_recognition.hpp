@@ -52,9 +52,6 @@ static const char custom_cpu_library_message[] = "Optional. For CPU custom layer
 /// @brief Message for probability threshold argument for face detections
 static const char face_threshold_output_message[] = "Optional. Probability threshold for face detections.";
 
-/// @brief Message for probability threshold argument for person/action detection
-static const char person_threshold_output_message[] = "Optional. Probability threshold for person/action detection.";
-
 /// @brief Message for cosine distance threshold for face reidentification
 static const char threshold_output_message_face_reid[] = "Optional. Cosine distance threshold between two vectors for face reidentification.";
 
@@ -141,10 +138,6 @@ DEFINE_string(l, "", custom_cpu_library_message);
 /// It is an optional parameter
 DEFINE_bool(r, false, raw_output_message);
 
-/// @brief Define probability threshold for person/action detection <br>
-/// It is an optional parameter
-DEFINE_double(t_ad, 0.4, person_threshold_output_message);
-
 /// @brief Define probability threshold for face detections <br>
 /// It is an optional parameter
 DEFINE_double(t_fd, 0.6, face_threshold_output_message);
@@ -224,7 +217,6 @@ static void showUsage() {
     std::cout << "    -out_v  '<path>'               " << output_video_message << std::endl;
     std::cout << "    -pc                            " << performance_counter_message << std::endl;
     std::cout << "    -r                             " << raw_output_message << std::endl;
-    std::cout << "    -t_ad                          " << person_threshold_output_message << std::endl;
     std::cout << "    -t_fd                          " << face_threshold_output_message << std::endl;
     std::cout << "    -inh_fd                        " << input_image_height_output_message << std::endl;
     std::cout << "    -inw_fd                        " << input_image_width_output_message << std::endl;

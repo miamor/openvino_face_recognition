@@ -30,7 +30,6 @@ Options:
     -out_v  '<path>'               Optional. File to write output video with visualization to.
     -pc                            Optional. Enables per-layer performance statistics.
     -r                             Optional. Output Inference results as raw values.
-    -t_ad                          Optional. Probability threshold for person/action detection.
     -t_fd                          Optional. Probability threshold for face detections.
     -inh_fd                        Optional. Input image height for face detector.
     -inw_fd                        Optional. Input image width for face detector.
