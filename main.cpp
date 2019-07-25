@@ -29,11 +29,10 @@
 using namespace InferenceEngine;
 
 
-int xmin = 210; //480; //210;
+int xmin = 220; //480; //220;
 int ymin = 20;
 int xmax = 565; //940; //565;
 int ymax = 660;
-
 
 namespace {
 
@@ -47,7 +46,7 @@ private:
     float rect_scale_x_;
     float rect_scale_y_;
     static int const max_input_width_ = 1920;
-    std::string const main_window_name_ = "Smart classroom demo";
+    std::string const main_window_name_ = "Face recognition";
     std::string const top_window_name_ = "Top-k students";
     static int const crop_width_ = 128;
     static int const crop_height_ = 320;
@@ -96,6 +95,10 @@ public:
         }
     }
 
+    void GetCurrentframe(cv::Mat& frame) {
+        frame = frame_.clone();
+    }
+
     void Show() const {
         if (enabled_) {
             cv::imshow(main_window_name_, frame_);
@@ -140,7 +143,8 @@ public:
     }
 
     void DrawObject(cv::Rect rect, const std::string& label_to_draw,
-                    const cv::Scalar& text_color, const cv::Scalar& bbox_color, bool plot_bg) {
+                    const cv::Scalar& text_color, const cv::Scalar& bbox_color, bool plot_bg, 
+                    size_t frameIdx, size_t faceIdx) {
         if (!enabled_ && !writer_.isOpened()) {
             return;
         }
@@ -157,6 +161,12 @@ public:
                 rect.height = cvRound(rect.height * rect_scale_y_);
                 rect.width = cvRound(rect.width * rect_scale_x_);
         }
+
+                // cv::Mat croppedImage;
+                // croppedImage = frame_(rect);
+                // // Save the roi into a file
+                // cv::imwrite("/media/tunguyen/Others/FaceReg/20190205_191037_A423__cropped/openvino_facereg/" + std::to_string(frameIdx) + "_"+std::to_string(faceIdx)+".png", croppedImage);
+
         cv::rectangle(frame_, rect, bbox_color);
 
         if (plot_bg && !label_to_draw.empty()) {
@@ -411,7 +421,7 @@ int main(int argc, char* argv[]) {
 
         Tracker tracker_reid(tracker_reid_params);
 
-        cv::Mat frame, prev_frame, prev_frame_sm;
+        cv::Mat frame, frame_sm, prev_frame, prev_frame_sm;
         detection::DetectedObjects faces;
 
         float work_time_ms = 0.f;
@@ -431,7 +441,6 @@ int main(int argc, char* argv[]) {
         }
 
 
-        cv::Mat frame_sm;
         // crop region before parse to detector
         cv::Rect myROI(xmin, ymin, xmax-xmin, ymax-ymin);
         if (FLAGS_roi) {
@@ -439,6 +448,7 @@ int main(int argc, char* argv[]) {
         } else {
             frame_sm = frame;
         }
+
 
             face_detector.enqueue(frame_sm);
             face_detector.submitRequest();
@@ -455,7 +465,7 @@ int main(int argc, char* argv[]) {
             vid_writer = cv::VideoWriter(FLAGS_out_v, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
                                          cap.GetFPS(), Visualizer::GetOutputSize(frame.size()));
         }
-        Visualizer sc_visualizer(!FLAGS_no_show, vid_writer, -1);
+        Visualizer sc_visualizer(!FLAGS_no_show, vid_writer, 1);
         DetectionsLogger logger(std::cout, FLAGS_r);
 
         if (!FLAGS_no_show) {
@@ -466,8 +476,15 @@ int main(int argc, char* argv[]) {
             auto started = std::chrono::high_resolution_clock::now();
 
             is_last_frame = !cap.GrabNext();
-            if (!is_last_frame)
+            if (!is_last_frame) {
                 cap.Retrieve(frame);
+
+                if (FLAGS_roi) {
+                    frame_sm = frame(myROI);
+                } else {
+                    frame_sm = frame;
+                }
+            }
 
             char key = cv::waitKey(1);
             if (key == ESC_KEY) {
@@ -483,12 +500,6 @@ int main(int argc, char* argv[]) {
 
                 if (!is_last_frame) {
                     prev_frame_path = cap.GetVideoPath();
-
-                    if (FLAGS_roi) {
-                        frame_sm = frame(myROI);
-                    } else {
-                        frame_sm = frame;
-                    }
 
                     face_detector.enqueue(frame_sm);
                     face_detector.submitRequest();
@@ -524,21 +535,26 @@ int main(int argc, char* argv[]) {
                     const auto& face = tracked_faces[j];
                     std::string label_to_draw;
                     if (face.label != EmbeddingsGallery::unknown_id)
-                        label_to_draw += face_gallery.GetLabelByID(face.label);
+                        label_to_draw += face_gallery.GetLabelByID(face.label) + " " + std::to_string(face.confidence);
                     // else
                     //     label_to_draw += "Unknown"
 
-                    sc_visualizer.DrawObject(face.rect, label_to_draw, white_color, red_color, true);
+                    sc_visualizer.DrawObject(face.rect, label_to_draw, white_color, red_color, true, total_num_frames, j);
                     logger.AddFaceToFrame(face.rect, face_gallery.GetLabelByID(face.label));
                 }
                 
-                sc_visualizer.DrawFPS(1e3f / (work_time_ms / static_cast<float>(work_num_frames) + 1e-6f),
-                                      blue_color);
+                sc_visualizer.DrawFPS(1e3f / (work_time_ms / static_cast<float>(work_num_frames) + 1e-6f), blue_color);
 
                 ++work_num_frames;
 
             
             if (FLAGS_roi) {
+                // cv::Mat image, croppedImage;
+                // sc_visualizer.GetCurrentframe(image);
+                // croppedImage = image(myROI);
+                // // Save the roi into a file
+                // cv::imwrite("/media/tunguyen/Others/FaceReg/20190205_191037_A423__cropped/openvino_facereg/" + std::to_string(total_num_frames) + ".png", croppedImage);
+
                 // draw region of interest
                 sc_visualizer.DrawRect(myROI, blue_color);
             }

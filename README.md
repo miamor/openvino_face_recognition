@@ -53,12 +53,12 @@ To run the demo, you can use public or pre-trained models. To download the pre-t
 
 Example of a valid command line to run the application with pre-trained models for recognizing identities from faces_gallery:
 ```sh
-./face_recognition  -m_fd <path_to_model>/face-detection-adas-0001.xml \
+./face_recognition  -m_fd <path_to_model>/face-detection-retail-0004.xml \
                     -m_reid <path_to_model>/face-reidentification-retail-0095.xml \
                     -m_lm <path_to_model>/landmarks-regression-retail-0009.xml \
                     -fg <path_to_faces_gallery.json> \
                     -i <path_to_video>
-./face_recognition  -m_fd <path_to_model>/face-detection-adas-0001.xml \
+./face_recognition  -m_fd <path_to_model>/face-detection-retail-0004.xml \
                     -m_reid <path_to_model>/face-reidentification-retail-0095.xml \
                     -m_lm <path_to_model>/landmarks-regression-retail-0009.xml \
                     -fg <path_to_faces_gallery.json> \
